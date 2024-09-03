@@ -27,4 +27,8 @@ rpbarsend: rpbarsend.o settings.hh
 clean:
 	rm -f *.o ${BIN}
 
+install:
+	cp rpbar /usr/local/bin/rpbar
+	cp rpbarsend /usr/local/bin/rpbarsend
+
 .PHONY: all clean
