@@ -33,10 +33,13 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <pwd.h>
 
 #include <algorithm>
 
 #include <X11/Xatom.h>
+
+#include <ini.h>
 
 #include "drw.h"
 
@@ -181,6 +184,40 @@ void RpBar::handle_xev() {
   }
 }
 
+static int ini_handler(void* user, const char *section, const char *name, const char *value) {
+  RpBar::configuration* pconfig = (RpBar::configuration*)user;
+
+  #define SMATCH(s) strcmp(section, s) == 0
+  #define NMATCH(n) strcmp(name, n) == 0
+  #define MATCH(s, n) SMATCH(s) && NMATCH(n)
+  if (SMATCH("program")) {
+    if (NMATCH("win_name")) pconfig->win_name = strdup(value);
+    if (NMATCH("socket_path")) pconfig->socket_path = strdup(value);
+    if (NMATCH("sep")) pconfig->sep = strdup(value);
+    if (NMATCH("bufsize")) pconfig->bufsize = atoi(value);
+    if (NMATCH("timeout_s")) pconfig->timeout_s = atoi(value);
+  } else if (SMATCH("display")) {
+    if (NMATCH("top")) pconfig->top = atoi(value);
+    if (NMATCH("screen")) pconfig->screen = atoi(value);
+    if (NMATCH("padding")) pconfig->padding = atoi(value);
+    if (NMATCH("button_margin")) pconfig->button_margin = atoi(value);
+    if (NMATCH("font_str")) pconfig->font_str = strdup(value);
+  } else if (SMATCH("color")) {
+    if (NMATCH("bordercolor")) pconfig->bordercolor = strdup(value);
+    if (NMATCH("bgcolor")) pconfig->bgcolor = strdup(value);
+    if (NMATCH("fgcolor")) pconfig->fgcolor = strdup(value);
+  }
+  return 1;
+}
+
+int RpBar::read_config(const char *path) {
+  if (ini_parse(path, ini_handler, &config) < 0) {
+    throw RpBarException("Error loading config path");
+  }
+  printf("Config loaded");
+  return 0;
+}
+
 void RpBar::init_socket() {
   if ((sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0) {
     throw RpBarException("Error creating socket");
@@ -310,6 +347,16 @@ void RpBar::init_gui() {
 }
 
 void RpBar::run() {
+  const char *homedir;
+  const char *config_path = "/.rpbar.ini";
+  char result_path[256];
+  if ((homedir = getenv("HOME")) == NULL) {
+      homedir = getpwuid(getuid())->pw_dir;
+  }
+  strcpy(result_path, homedir);
+  strcat(result_path, config_path);
+  read_config(result_path);
+
   init_socket();
   init_gui();
   struct timeval timeout;

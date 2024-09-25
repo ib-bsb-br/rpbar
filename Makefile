@@ -1,6 +1,6 @@
 CXX=g++
 CXXFLAGS=-Os -Wall
-LIBS=-lX11 -lXft -lfontconfig
+LIBS=-lX11 -lXft -lfontconfig -linih
 INCLUDES=`pkg-config --cflags fontconfig`
 
 BIN=rpbar rpbarsend

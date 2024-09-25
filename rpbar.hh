@@ -51,9 +51,35 @@ public:
   ~RpBar();
   void run();
 
+  typedef struct
+  {
+    // [program]
+    const char *win_name;
+	const char *socket_path;
+	const char *sep;
+	int bufsize;
+	int timeout_s;
+
+    // [display]
+	int top;
+	int screen;
+	int padding;
+	int button_margin;
+	const char *font_str;
+
+    // [color]
+	const char *bordercolor;
+	const char *bgcolor;
+	const char *fgcolor;
+
+  } configuration;
+  configuration config;
+
 private:
   RpBar (const RpBar& other);
   RpBar& operator=(const RpBar& other);
+
+  int read_config(const char *path);
 
   void init_socket();
 
