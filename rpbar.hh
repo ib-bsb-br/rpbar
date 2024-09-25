@@ -71,7 +71,10 @@ public:
 	const char *bordercolor;
 	const char *bgcolor;
 	const char *fgcolor;
-
+	const char *mainbgcolor;
+	const char *mainfgcolor;
+	const char *statusbgcolor;
+	const char *statusfgcolor;
   } configuration;
   configuration config;
 

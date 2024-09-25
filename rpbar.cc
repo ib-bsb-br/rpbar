@@ -149,7 +149,7 @@ void RpBar::handle_fd() {
   int numbytes;
   if ((numbytes = recv(sock_fd,
                        buffer,
-                       RPBAR_BUFSIZE-1,
+                       config.bufsize-1,
                        0))==-1) {
     throw RpBarException("recv failed");
   }
@@ -206,6 +206,10 @@ static int ini_handler(void* user, const char *section, const char *name, const 
     if (NMATCH("bordercolor")) pconfig->bordercolor = strdup(value);
     if (NMATCH("bgcolor")) pconfig->bgcolor = strdup(value);
     if (NMATCH("fgcolor")) pconfig->fgcolor = strdup(value);
+    if (NMATCH("mainbgcolor")) pconfig->mainbgcolor = strdup(value);
+    if (NMATCH("mainfgcolor")) pconfig->mainfgcolor = strdup(value);
+    if (NMATCH("statusbgcolor")) pconfig->statusbgcolor = strdup(value);
+    if (NMATCH("statusfgcolor")) pconfig->statusfgcolor = strdup(value);
   }
   return 1;
 }
@@ -229,7 +233,7 @@ void RpBar::init_socket() {
   // since the socket is named file in /tmp
   uid_t uid = geteuid();
   std::stringstream ss;
-  ss << RPBAR_SOCKET_PATH << "-" << uid;
+  ss << config.socket_path << "-" << uid;
   socket_path = ss.str();
 
   strcpy(servaddr.sun_path, socket_path.c_str());
@@ -287,18 +291,18 @@ void RpBar::init_gui() {
   screen = DefaultScreen(display);
   root = RootWindow(display, screen);
   XSetWindowAttributes window_attribs;
-  bordercolor = get_color(RPBAR_BORDERCOLOR);
-  bgcolor = get_color(RPBAR_BGCOLOR);
-  mainbgcolor = get_color(RPBAR_MAINBGCOLOR);
-  statusbgcolor = get_color(RPBAR_STATUSBGCOLOR);
-  init_font(RPBAR_FONT_STR);
+  bordercolor = get_color(config.bordercolor);
+  bgcolor = get_color(config.bgcolor);
+  mainbgcolor = get_color(config.mainbgcolor);
+  statusbgcolor = get_color(config.statusbgcolor);
+  init_font(config.font_str);
   window_attribs.override_redirect = 1;
   window_attribs.background_pixmap = ParentRelative;
   window_attribs.event_mask = ExposureMask | ButtonPressMask;
-  bar_h = get_font_height() + RPBAR_PADDING;
+  bar_h = get_font_height() + config.padding;
 
   char screen_val[2];
-  sprintf(screen_val,"%d", RPBAR_SCREEN);
+  sprintf(screen_val,"%d", config.screen);
   char cmd[256] = "ratpoison -c \"sdump\" | perl -pe \"s/^.*?,{";
   strcat(cmd, screen_val);
   strcat(cmd, "}[^0-9]*[0-9]\\s[0-9]\\s([0-9]*)\\s([0-9]*)\\s([0-9]*)\\s([0-9]*).*/\\1\\n\\2\\n\\3\\n\\4/g\"");
@@ -329,7 +333,7 @@ void RpBar::init_gui() {
   pclose(stream);
 
   bar_x = screen_x;
-  bar_y = RPBAR_TOP ? screen_y : screen_y + screen_h - bar_h;
+  bar_y = config.top ? screen_y : screen_y + screen_h - bar_h;
   bar_w = screen_w;
   update_status();
   win = XCreateWindow(display, root, bar_x, bar_y, bar_w, bar_h, 0,
@@ -372,7 +376,7 @@ void RpBar::run() {
     FD_SET(x11_fd, &fds);
     FD_SET(sock_fd, &fds);
     timeout.tv_usec = 0;
-    timeout.tv_sec = RPBAR_TIMEOUT_S;
+    timeout.tv_sec = config.timeout_s;
     // the 'max' is because 'select' checks the first n-1 first fd's.
     int ret = select(std::max(x11_fd,sock_fd)+1, &fds, 0, 0, &timeout);
     if (ret < 0) {
@@ -411,7 +415,7 @@ void RpBar::get_rp_info() {
     throw RpBarException("popen failed");
   }
   // TODO make sure this is The Right Way (tm)
-  while(fgets(buffer, RPBAR_BUFSIZE, stream)) {
+  while(fgets(buffer, config.bufsize, stream)) {
     rstrip(buffer);
     windows.push_back(std::string(buffer));
   }
@@ -437,15 +441,15 @@ void RpBar::refresh(){
     const char * fg_color = NULL;
     if (last_char=='*') {
       bg = mainbgcolor;
-      fg_color = RPBAR_MAINFGCOLOR;
+      fg_color = config.mainfgcolor;
     } else {
       bg = bgcolor;
-      fg_color = RPBAR_FGCOLOR;
+      fg_color = config.fgcolor;
     }
 
     // shave off characters until the width is acceptable
     while (text_width(button_label.c_str()) >
-        button_width - 2*RPBAR_BUTTON_MARGIN) {
+        button_width - 2*config.button_margin) {
       button_label.erase(button_label.length()-1);
     }
 
@@ -464,7 +468,7 @@ void RpBar::refresh(){
     if (itr==windows.end()-1) {
       XSetForeground(display, gc, statusbgcolor);
       XFillRectangle(display, drawable, gc, curx+1, 1, width, bar_h-2);
-      draw_text(curx + (text_width(status) / 4), y, status, RPBAR_STATUSFGCOLOR, render);
+      draw_text(curx + (text_width(status) / 4), y, status, config.statusfgcolor, render);
     }
   }
   XCopyArea(display, drawable, win, gc, 0, 0, bar_w, bar_h, 0, 0);
