@@ -36,8 +36,18 @@
 
 #include <ini.h>
 
+typedef struct {
+  const char *path;
+} configuration;
+
 static int handler(void* user, const char *section, const char *name, const char *value) {
-  if (strcmp(section, "program") == 0 && strcmp(name, "socket_path")) user = (void *)value;
+  configuration* pconfig = (configuration*)user;
+
+  #define SMATCH(s) strcmp(section, s) == 0
+  #define NMATCH(n) strcmp(name, n) == 0
+  #define MATCH(s, n) SMATCH(s) && NMATCH(n)
+  if (MATCH("program", "socket_path")) pconfig->path = strdup(value);
+
   return 1;
 }
 
@@ -63,8 +73,8 @@ int main(int argc, const char *argv[]) {
   // hacky solution
   const char *homedir;
   const char *cache_path = "/.cache/.rpbarsend";
-  const char *config_path = "/.cache/.rpbarsend";
-  const char *found_path;
+  const char *config_path = "/.rpbar.ini";
+  configuration config;
   char result_path[256];
   if ((homedir = getenv("HOME")) == NULL) {
      homedir = getpwuid(getuid())->pw_dir;
@@ -75,16 +85,16 @@ int main(int argc, const char *argv[]) {
   if ((fptr = fopen(result_path, "r")) == NULL) {
     strcpy(result_path, homedir);
     strcat(result_path, config_path);
-	if (ini_parse(result_path, handler, &found_path)) {
+	if (ini_parse(result_path, handler, &config)) {
       perror("config");
 	}
   } else {
-    
+    // todo: read cache
   }
 
   uid_t uid = geteuid();
   std::stringstream ss;
-  ss << found_path << "-" << uid;
+  ss << config.path << "-" << uid;
   std::string socket_path(ss.str());
 
   strcpy(servaddr.sun_path, socket_path.c_str());
