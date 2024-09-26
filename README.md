@@ -1,12 +1,14 @@
-merrittlj's fork - upgraded rpbar
+merrittlj's fork - rpbar
 ======
 
 In this fork:
 * Status indicator/tray:
     On the right side of the bar is a status indicator/tray! Text is automatically displayed based on your ``xsetroot``, which is the same way you would set a dwm status(``xsetroot -name "status text"``)
+* Configuration file
+    Configuration is done through ``~/.rpbar.ini`` rather than compile-time options
 * Multi-monitor support:
     rpbar didn't work with multiple monitors at first, due to how Rat Poison sets up the monitors. This fork adds support for multiple monitors through the configuration of ``RPBAR_SCREEN``.
-* ``RPBAR_TOP`` implementation:
+* Screen top implementation(PR from original repo.):
     The bar can be on the top of the screen.
 * Cosmetic changes:
     I changed some default colors/settings, but also moved the */+/- indicator to the left. ex: ``0 firefox-`` -> ``[0-]firefox``

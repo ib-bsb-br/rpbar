@@ -34,7 +34,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "settings.hh"
+#define BUFSIZE 2048
 
 namespace rpbar
 {
@@ -57,7 +57,6 @@ public:
     const char *win_name;
 	const char *socket_path;
 	const char *sep;
-	int bufsize;
 	int timeout_s;
 
     // [display]
@@ -139,7 +138,7 @@ private:
   int bar_x, bar_y, status_width, faked_bar_w, bar_w, bar_h;
   unsigned long bordercolor, bgcolor, fgcolor, mainbgcolor, mainfgcolor, statusbgcolor, statusfgcolor;
 
-  char buffer[RPBAR_BUFSIZE];
+  char buffer[BUFSIZE];
   std::vector<std::string> windows;
 
   // X stuff

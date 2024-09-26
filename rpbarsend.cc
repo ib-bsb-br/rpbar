@@ -28,12 +28,18 @@
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <pwd.h>
 
 // TODO just use c stuff
 #include <string>
 #include <sstream>
 
-#include "settings.hh"
+#include <ini.h>
+
+static int handler(void* user, const char *section, const char *name, const char *value) {
+  if (strcmp(section, "program") == 0 && strcmp(name, "socket_path")) user = (void *)value;
+  return 1;
+}
 
 int main(int argc, const char *argv[]) {
   const char *default_message = "m";
@@ -54,9 +60,31 @@ int main(int argc, const char *argv[]) {
   memset(&servaddr, 0, sizeof(servaddr));
   servaddr.sun_family = AF_UNIX;
 
+  // hacky solution
+  const char *homedir;
+  const char *cache_path = "/.cache/.rpbarsend";
+  const char *config_path = "/.cache/.rpbarsend";
+  const char *found_path;
+  char result_path[256];
+  if ((homedir = getenv("HOME")) == NULL) {
+     homedir = getpwuid(getuid())->pw_dir;
+  }
+  strcpy(result_path, homedir);
+  strcat(result_path, cache_path);
+  FILE *fptr;
+  if ((fptr = fopen(result_path, "r")) == NULL) {
+    strcpy(result_path, homedir);
+    strcat(result_path, config_path);
+	if (ini_parse(result_path, handler, &found_path)) {
+      perror("config");
+	}
+  } else {
+    
+  }
+
   uid_t uid = geteuid();
   std::stringstream ss;
-  ss << RPBAR_SOCKET_PATH << "-" << uid;
+  ss << found_path << "-" << uid;
   std::string socket_path(ss.str());
 
   strcpy(servaddr.sun_path, socket_path.c_str());

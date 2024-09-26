@@ -10,7 +10,7 @@ all: ${BIN}
 .cc.o:
 	${CXX} -c ${CXXFLAGS} $<
 
-rpbar.o: rpbar.cc rpbar.hh settings.hh drw.h
+rpbar.o: rpbar.cc rpbar.hh drw.h
 	${CXX} -c ${CXXFLAGS} ${INCLUDES} $<
 
 drw.o: drw.c drw.h
@@ -21,8 +21,8 @@ rpbar: rpbar.o drw.o
 
 rpbarsend.o: rpbarsend.cc
 
-rpbarsend: rpbarsend.o settings.hh
-	${CXX} -o $@ $^
+rpbarsend: rpbarsend.o
+	${CXX} -o $@ $^ -linih
 
 clean:
 	rm -f *.o ${BIN}

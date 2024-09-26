@@ -149,7 +149,7 @@ void RpBar::handle_fd() {
   int numbytes;
   if ((numbytes = recv(sock_fd,
                        buffer,
-                       config.bufsize-1,
+                       BUFSIZE-1,
                        0))==-1) {
     throw RpBarException("recv failed");
   }
@@ -194,7 +194,6 @@ static int ini_handler(void* user, const char *section, const char *name, const 
     if (NMATCH("win_name")) pconfig->win_name = strdup(value);
     if (NMATCH("socket_path")) pconfig->socket_path = strdup(value);
     if (NMATCH("sep")) pconfig->sep = strdup(value);
-    if (NMATCH("bufsize")) pconfig->bufsize = atoi(value);
     if (NMATCH("timeout_s")) pconfig->timeout_s = atoi(value);
   } else if (SMATCH("display")) {
     if (NMATCH("top")) pconfig->top = atoi(value);
@@ -415,7 +414,7 @@ void RpBar::get_rp_info() {
     throw RpBarException("popen failed");
   }
   // TODO make sure this is The Right Way (tm)
-  while(fgets(buffer, config.bufsize, stream)) {
+  while(fgets(buffer, BUFSIZE, stream)) {
     rstrip(buffer);
     windows.push_back(std::string(buffer));
   }
