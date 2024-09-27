@@ -200,6 +200,7 @@ static int ini_handler(void* user, const char *section, const char *name, const 
     if (NMATCH("screen")) pconfig->screen = atoi(value);
     if (NMATCH("padding")) pconfig->padding = atoi(value);
     if (NMATCH("button_margin")) pconfig->button_margin = atoi(value);
+    if (NMATCH("status_padding")) pconfig->status_padding = atoi(value);
     if (NMATCH("font_str")) pconfig->font_str = strdup(value);
   } else if (SMATCH("color")) {
     if (NMATCH("bordercolor")) pconfig->bordercolor = strdup(value);
@@ -467,7 +468,7 @@ void RpBar::refresh(){
     if (itr==windows.end()-1) {
       XSetForeground(display, gc, statusbgcolor);
       XFillRectangle(display, drawable, gc, curx+1, 1, width, bar_h-2);
-      draw_text(curx + (text_width(status) / 4), y, status, config.statusfgcolor, render);
+      draw_text(curx + config.status_padding, y, status, config.statusfgcolor, render);
     }
   }
   XCopyArea(display, drawable, win, gc, 0, 0, bar_w, bar_h, 0, 0);
@@ -479,7 +480,7 @@ void RpBar::update_status(){
 	strcpy(status, "rpbar");
 
   status_width = text_width(status);
-  status_width += status_width / 2;
+  status_width += config.status_padding * 2;
   faked_bar_w = bar_w - status_width;
 }
 

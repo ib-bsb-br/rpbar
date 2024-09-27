@@ -64,6 +64,7 @@ public:
 	int screen;
 	int padding;
 	int button_margin;
+    int status_padding;
 	const char *font_str;
 
     // [color]
