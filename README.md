@@ -1,3 +1,7 @@
+```
+sudo apt install libinih-dev build-essential libx11-dev libxft-dev libfontconfig1-dev pkg-config
+```
+
 merrittlj's fork - rpbar
 ======
 
